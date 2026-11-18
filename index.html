@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2b5797">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LRS-Trainer">
+<!--PWA-->
+<title>LRS-Trainer – Lesen &amp; Schreiben</title>
+<style>
+:root{--bg:#fbf8f1;--card:#fff;--ink:#1d2433;--muted:#5b6475;--pri:#2b5797;--pri2:#e8eef8;--ok:#1f8a4c;--okbg:#e6f5ec;--bad:#b83227;--badbg:#fbeaea;--s0:#1a5fb4;--s1:#c01c28;--fs:22px;--ls:0.04em;--line:#e4dfd3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:Verdana,"DejaVu Sans","Segoe UI",Tahoma,Roboto,Arial,sans-serif;font-size:17px;line-height:1.5;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#app{max-width:720px;margin:0 auto;padding:14px 14px 40px}
+h1{font-size:24px;margin:6px 0 4px}h2{font-size:20px;margin:18px 0 8px}h3{font-size:18px;margin:10px 0 6px}
+p{margin:6px 0}.muted{color:var(--muted);font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.hero{background:var(--pri);color:#fff;border:none;cursor:pointer}
+.hero h2{margin:0 0 4px;color:#fff}.hero p{color:#dfe8f7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+.m{cursor:pointer;margin:0;display:flex;flex-direction:column;gap:2px}
+.m .ic{font-size:26px}.m b{font-size:16px}.ev{display:inline-block;font-size:12px;background:var(--pri2);color:var(--pri);border-radius:20px;padding:1px 8px;align-self:flex-start}
+.btn{font:inherit;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:12px;padding:10px 16px;cursor:pointer;font-weight:600}
+.btn.pri{background:var(--pri);color:#fff}.btn.wide{width:100%;margin-top:12px;padding:14px}
+.btn.small{padding:6px 10px;font-size:14px}
+.link{background:none;border:none;color:var(--pri);font:inherit;cursor:pointer;padding:6px 0;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.prog{flex:1;height:10px;background:var(--line);border-radius:10px;overflow:hidden}.prog div{height:100%;background:var(--ok);transition:width .3s}
+.cnt{font-size:14px;color:var(--muted)}
+.ex{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+.task{color:var(--muted);font-size:15px;margin-bottom:8px}
+.big{font-size:calc(var(--fs)*1.7);letter-spacing:var(--ls);font-weight:600;margin:10px 0;word-break:break-word}
+.sent{font-size:calc(var(--fs)*1.05);letter-spacing:var(--ls);margin:10px 0;line-height:1.7}
+.gap{display:inline-block;min-width:1.4em;border-bottom:4px solid var(--pri);color:var(--pri)}
+.opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
+.opt{font:inherit;font-size:calc(var(--fs)*1.1);letter-spacing:var(--ls);min-width:72px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-weight:600}
+.opt.wideopt{width:100%;font-size:var(--fs)}
+.opt.right{border-color:var(--ok);background:var(--okbg)}.opt.wrong{border-color:var(--bad);background:var(--badbg)}
+.locked .opt,.locked .tile,.locked input{pointer-events:none}
+.say{font:inherit;font-size:30px;width:64px;height:64px;border-radius:50%;border:none;background:var(--pri2);cursor:pointer;margin:4px}
+.fb{border-radius:16px;padding:14px;margin-top:12px;text-align:center}
+.fb.ok{background:var(--okbg);border:2px solid var(--ok)}.fb.bad{background:var(--badbg);border:2px solid var(--bad)}
+.fbh{font-weight:700;font-size:19px;margin-bottom:4px}
+.s0{color:var(--s0)}.s1{color:var(--s1)}
+.nosil .s0,.nosil .s1{color:inherit}
+input.type{font:inherit;font-size:calc(var(--fs)*1.2);letter-spacing:var(--ls);width:100%;padding:12px;border:2px solid var(--line);border-radius:12px;text-align:center;margin-top:10px}
+input.type:focus{outline:none;border-color:var(--pri)}
+del{color:var(--bad);text-decoration:line-through}ins{color:var(--ok);text-decoration:underline;text-decoration-thickness:3px;font-weight:700}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:58px;margin:8px 0}
+.tile{font:inherit;font-size:calc(var(--fs)*1.15);letter-spacing:var(--ls);padding:10px 14px;border-radius:12px;border:2px solid var(--pri);background:#fff;color:var(--pri);cursor:pointer;font-weight:600}
+.slot{border:2px dashed var(--line);border-radius:12px;padding:6px;min-height:62px}
+.text{text-align:left;font-size:var(--fs);letter-spacing:var(--ls);line-height:1.9;word-spacing:.12em}
+.timer{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.rule{background:#fffaf0;border:2px solid #f0d9a8;border-radius:14px;padding:12px;text-align:left}
+.merk{font-weight:700;color:#8a5a00;margin-top:6px}
+.bar{height:12px;background:var(--line);border-radius:8px;overflow:hidden;margin:4px 0}.bar div{height:100%;background:var(--pri)}
+.stat{display:flex;justify-content:space-between;gap:8px;font-size:15px}
+.tag{font-size:13px;padding:2px 8px;border-radius:20px;background:var(--okbg);color:var(--ok);font-weight:700}
+.tag.warn{background:var(--badbg);color:var(--bad)}
+label.f{display:block;margin:12px 0 4px;font-weight:600}
+input[type=range]{width:100%}
+input.txt{font:inherit;width:100%;padding:10px;border:2px solid var(--line);border-radius:10px}
+.seg{display:flex;gap:6px}.seg button{flex:1}.seg .on{background:var(--pri);color:#fff}
+.prof{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.stars{font-weight:700;color:#b7791f}
+.small{font-size:14px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ================== Hilfsfunktionen ================== */
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plain=s=>s.replace(/\|/g,'');
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function today(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return today(d)}
+
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let DB=store.get('lrs_db',null)||{profiles:[],cur:null,set:{size:22,space:1,silben:true,rate:0.85}};
+function save(){store.set('lrs_db',DB)}
+function P(){return DB.profiles.find(p=>p.id===DB.cur)}
+const isKid=()=>!!(P()&&P().mode==='kind');
+function applySettings(){const r=document.documentElement.style;r.setProperty('--fs',DB.set.size+'px');r.setProperty('--ls',[0,0.04,0.09,0.15][DB.set.space]+'em');document.body.classList.toggle('nosil',!DB.set.silben)}
+
+/* ================== Sprachausgabe ================== */
+const NATIVE=(typeof window.AndroidTTS!=='undefined');
+const hasTTS=NATIVE||('speechSynthesis' in window);
+let deVoice=null;
+function loadVoices(){if(NATIVE)return;try{const v=speechSynthesis.getVoices();deVoice=v.find(x=>/^de[-_]DE/i.test(x.lang))||v.find(x=>/^de/i.test(x.lang))||null}catch(e){}}
+if(hasTTS&&!NATIVE){loadVoices();try{speechSynthesis.onvoiceschanged=loadVoices}catch(e){}}
+function say(t,slow){if(!hasTTS)return;const rate=(DB.set.rate||0.85)*(slow?0.6:1);if(NATIVE){try{window.AndroidTTS.speak(plain(t),rate)}catch(e){}return}try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(plain(t));u.lang='de-DE';if(deVoice)u.voice=deVoice;u.rate=rate;speechSynthesis.speak(u)}catch(e){}}
+function stopSay(){if(NATIVE){try{window.AndroidTTS.stop()}catch(e){}return}if(hasTTS){try{speechSynthesis.cancel()}catch(e){}}}
+
+/* ================== Daten ================== */
+const W_KID="Son|ne Ba|na|ne Ap|fel Hund Kat|ze Mond Blu|me Schu|le Ta|fel Fens|ter Zim|mer Bal|lon E|le|fant Gi|raf|fe Scho|ko|la|de Fahr|rad Au|to Bus Zug Tisch Stuhl Bett Haus Baum Wald Wie|se Vo|gel Fisch Maus Pferd Kuh Schaf Ha|se I|gel Ra|be Brot But|ter Kä|se Milch Sup|pe Nu|deln Piz|za Ku|chen Ku|gel Ham|mer Schau|kel Rut|sche Lam|pe Ta|sche Ja|cke Müt|ze Ho|se Schuh So|cke Hand Fuß Na|se Ohr Au|ge Mund Zahn Bein Rü|cken Fe|der Pin|sel Far|be Heft Buch Blei|stift Li|ne|al Ra|dier|gum|mi Schne|cke Kä|fer Spin|ne Bie|ne Mü|cke Frosch Dra|che Rit|ter Kö|nig Prin|zes|sin Schloss Pi|rat Schiff Boot Him|mel Wol|ke Re|gen Schnee Win|ter Som|mer Herbst Früh|ling Ge|burts|tag Ge|schenk Ker|ze Tor|te Freund Spiel Fuß|ball Tor Lö|we Ti|ger Af|fe Ze|bra Kro|ko|dil Schild|krö|te Pa|pa|gei Eu|le Schmet|ter|ling Ro|bo|ter Ra|ke|te Pla|net Stern Gar|ten Stra|ße Am|pel Brü|cke Berg Fluss Was|ser Glas Tas|se Tel|ler Löf|fel Ga|bel Mes|ser Kü|che Tür Schlüs|sel Uhr Ka|len|der Hams|ter Pup|pe Zie|ge Brief Bild Kind Wind Tier".split(' ');
+const W_ERW="Ar|beit Ter|min Rech|nung Ver|trag Ver|si|che|rung Kon|to Ü|ber|wei|sung Be|wer|bung Ur|laub Fei|er|a|bend Kol|le|ge Be|spre|chung Te|le|fon Nach|richt Un|ter|schrift An|trag Be|hör|de Füh|rer|schein Werk|statt Rei|fen Tank|stel|le Ben|zin Mo|tor Re|pa|ra|tur Ein|kauf Quit|tung Ga|ran|tie Miet|ver|trag Woh|nung Hei|zung Strom Arzt Pra|xis Re|zept A|po|the|ke Kran|ken|kas|se Ver|ab|re|dung Ein|la|dung Wo|chen|en|de Fahr|plan Bahn|hof Ver|spä|tung Fahr|kar|te Lie|fe|rung Pa|ket Ad|res|se Post|leit|zahl Kün|di|gung Ge|halt Schicht Pau|se Ma|schi|ne Werk|zeug Si|cher|heit Hand|schu|he Kun|de Be|stel|lung Ge|neh|mi|gung Er|klä|rung In|for|ma|ti|on Rück|ruf Ver|ant|wor|tung Ent|schul|di|gung Kaf|fee Bröt|chen Zei|tung Nach|bar Fa|mi|lie Kin|der|gar|ten El|tern|a|bend Zeug|nis Haus|auf|ga|ben Mo|tor|rad Han|dy Ak|ku La|de|ka|bel Com|pu|ter Pass|wort Dru|cker Steu|er Kas|se Ein|gang Aus|gang Mit|ar|bei|ter Ab|tei|lung Fei|er|tag".split(' ');
+
+const S_KID=["Der Hund spielt im Garten.","Ich esse gern Kuchen.","Die Sonne scheint heute.","Mein Fahrrad ist blau.","Wir gehen in die Schule.","Die Katze schläft auf dem Sofa.","Der Vogel sitzt im Baum.","Am Morgen trinke ich Milch.","Im Winter liegt Schnee.","Die Biene fliegt zur Blume."];
+const S_ERW=["Ich habe morgen einen Termin.","Bitte rufen Sie mich zurück.","Die Rechnung liegt im Briefkasten.","Wir treffen uns um zehn Uhr.","Das Paket kommt am Montag.","Vielen Dank für Ihre Nachricht.","Der Zug hat leider Verspätung.","Ich brauche eine Quittung.","Die Werkstatt ruft heute an.","Ich bin am Freitag im Urlaub."];
+
+const KURZ=["Sonne","Ball","Kamm","Mutter","Wasser","Tisch","Hund","Bett","Katze","Jacke","Mütze","Puppe","Kiste","Brille"];
+const LANG=["Hose","Nase","Rose","Tiger","Biene","Hut","Schule","Gabel","Bahn","Uhr","Brief","Name","Igel","Mond"];
+
+const RULES=[
+{id:'doppel',name:'Doppelte Mitlaute',kid:'Sprich das Wort langsam. Ist der Selbstlaut (a, e, i, o, u) <b>kurz und schnell</b>, kommt danach oft ein doppelter Mitlaut: Son-ne, Ball. Ist er <b>lang</b>, steht nur einer: Na-se.',erw:'Nach einem <b>kurz gesprochenen Vokal</b> folgt meist ein doppelter Konsonant (Sonne, Ball). Nach einem <b>langen Vokal</b> steht nur ein Konsonant (Name, Hose).',merk:'Kurz und knapp → Mitlaut doppelt. Lang und gedehnt → nur einer.',
+items:["So[nn/n]e#kurzes o","Ba[ll/l]#kurzes a","Ka[mm/m]#kurzes a","Mu[tt/t]er#kurzes u","Wa[ss/s]er#kurzes a","Pu[pp/p]e#kurzes u","Bri[ll/l]e#kurzes i","We[tt/t]er#kurzes e","Bla[tt/t]#kurzes a","Ha[mm/m]er#kurzes a","Hü[tt/t]e#kurzes ü","schwi[mm/m]en#kurzes i","ko[mm/m]en#kurzes o","Na[m/mm]e#langes a → nur ein m","Ro[s/ss]e#langes o → nur ein s","Ga[b/bb]el#langes a → nur ein b","Schu[l/ll]e#langes u → nur ein l","Hu[t/tt]#langes u → nur ein t","Le[b/bb]en#langes e → nur ein b","Ho[s/ss]e#langes o → nur ein s"]},
+{id:'ck',name:'ck oder k',kid:'Nach einem <b>kurzen</b> Selbstlaut schreibt man <b>ck</b> (Jacke). Nach einem langen Selbstlaut, nach au/ei/eu oder nach l, n, r schreibt man nur <b>k</b> (Haken, Pauke, Bank).',erw:'<b>ck</b> steht nur nach kurzem Vokal (Jacke, Zucker). Nach langem Vokal, Doppellaut (au, ei, eu) oder Konsonant (l, n, r) steht <b>k</b> (Haken, Pauke, Bank).',merk:'Nach l, n, r – das merke ja – steht nie tz und nie ck!',
+items:["Ja[ck/k]e#kurzes a","Zu[ck/k]er#kurzes u","Bä[ck/k]er#kurzes ä","Brü[ck/k]e#kurzes ü","Glü[ck/k]#kurzes ü","Schne[ck/k]e#kurzes e","De[ck/k]e#kurzes e","E[ck/k]e#kurzes e","Ro[ck/k]#kurzes o","Sa[ck/k]#kurzes a","Ban[k/ck]#nach n nie ck","Dan[k/ck]e#nach n nie ck","Pau[k/ck]e#nach au nie ck","Ha[k/ck]en#langes a → k","Fal[k/ck]e#nach l nie ck","Mar[k/ck]t#nach r nie ck","Spu[k/ck]#langes u → k"]},
+{id:'tz',name:'tz oder z',kid:'Nach einem <b>kurzen</b> Selbstlaut schreibt man <b>tz</b> (Katze). Nach l, n, r, nach ei/eu oder einem langen Selbstlaut nur <b>z</b> (Herz, Kreuz, Brezel).',erw:'<b>tz</b> steht nur nach kurzem Vokal (Katze, Platz). Nach Konsonant (l, n, r), Doppellaut oder langem Vokal steht <b>z</b> (Herz, Heizung, Brezel).',merk:'Nach l, n, r – das merke ja – steht nie tz und nie ck!',
+items:["Ka[tz/z]e#kurzes a","Pla[tz/z]#kurzes a","Hi[tz/z]e#kurzes i","Mü[tz/z]e#kurzes ü","Pfü[tz/z]e#kurzes ü","si[tz/z]en#kurzes i","Bli[tz/z]#kurzes i","Spi[tz/z]e#kurzes i","Sa[tz/z]#kurzes a","Her[z/tz]#nach r nie tz","Ker[z/tz]e#nach r nie tz","Pil[z/tz]#nach l nie tz","Hol[z/tz]#nach l nie tz","Kreu[z/tz]#nach eu nie tz","Hei[z/tz]ung#nach ei nie tz","Bre[z/tz]el#langes e → z","Schwan[z/tz]#nach n nie tz"]},
+{id:'ie',name:'ie oder i',kid:'Hörst du ein <b>langes i</b>, schreibst du fast immer <b>ie</b> (Biene, Tier). Ein <b>kurzes i</b> schreibt man nur mit <b>i</b> (Kind, Fisch). Ausnahmen wie Tiger und Igel musst du dir merken.',erw:'Ein <b>lang gesprochenes i</b> wird meist <b>ie</b> geschrieben (Liebe, Brief). Kurzes i schreibt man <b>i</b> (Kind, Milch). Ausnahmen: Tiger, Igel, Bibel, Maschine, mir, dir, wir.',merk:'Langes i → ie. Kurzes i → i.',
+items:["L[ie/i]be#langes i","T[ie/i]r#langes i","sp[ie/i]len#langes i","Br[ie/i]f#langes i","W[ie/i]se#langes i","Z[ie/i]ge#langes i","B[ie/i]ne#langes i","n[ie/i]mand#langes i","fl[ie/i]gen#langes i","K[i/ie]nd#kurzes i","F[i/ie]sch#kurzes i","T[i/ie]sch#kurzes i","W[i/ie]nd#kurzes i","B[i/ie]ld#kurzes i","M[i/ie]lch#kurzes i","T[i/ie]ger#Ausnahme – merken!","[I/Ie]gel#Ausnahme – merken!"]},
+{id:'dehn',name:'Dehnungs-h',kid:'Manchmal steht nach einem langen Selbstlaut ein <b>h</b>, das man nicht hört (Bahn, Uhr). Es kommt nur vor <b>l, m, n, r</b> – aber nicht immer! Diese Wörter musst du üben und dir merken.',erw:'Das Dehnungs-h steht nur nach langem Vokal und nur vor <b>l, m, n, r</b> (Bahn, Stuhl, fahren) – aber nicht in jedem solchen Wort (Tal, Plan, Ton). Hier hilft nur Merken und Üben.',merk:'Dehnungs-h nur vor l, m, n, r – und auch da nicht immer: Merkwörter!',
+items:["Ba[hn/n]#Merkwort mit h","Za[hn/n]#Merkwort mit h","fa[hr/r]en#Merkwort mit h","U[hr/r]#Merkwort mit h","Me[hl/l]#Merkwort mit h","Hu[hn/n]#Merkwort mit h","Stu[hl/l]#Merkwort mit h","Fe[hl/l]er#Merkwort mit h","wo[hn/n]en#Merkwort mit h","Le[hr/r]er#Merkwort mit h","Ja[hr/r]#Merkwort mit h","ze[hn/n]#Merkwort mit h","Ta[l/hl]#Merkwort ohne h","Schu[l/hl]e#Merkwort ohne h","Pla[n/hn]#Merkwort ohne h","To[n/hn]#Merkwort ohne h","Bü[r/hr]o#Merkwort ohne h","Ka[m/hm]el#Merkwort ohne h"]},
+{id:'ss',name:'ss oder ß',kid:'Nach einem <b>kurzen</b> Selbstlaut schreibt man <b>ss</b> (Wasser). Nach einem <b>langen</b> Selbstlaut oder nach au, ei, eu, ie schreibt man <b>ß</b> (Fuß, heiß).',erw:'<b>ss</b> nach kurzem Vokal (Wasser, Kuss). <b>ß</b> nach langem Vokal oder Doppellaut (Straße, heiß, draußen).',merk:'Kurz → ss. Lang oder au/ei/eu/ie → ß.',
+items:["Fu[ß/ss]#langes u","Stra[ß/ss]e#langes a","gro[ß/ss]#langes o","Grü[ß/ss]e#langes ü","hei[ß/ss]#nach ei","Spa[ß/ss]#langes a","flie[ß/ss]en#nach ie","drau[ß/ss]en#nach au","sü[ß/ss]#langes ü","Wa[ss/ß]er#kurzes a","Ta[ss/ß]e#kurzes a","Schlo[ss/ß]#kurzes o","Ku[ss/ß]#kurzes u","Flu[ss/ß]#kurzes u","e[ss/ß]en#kurzes e","Ka[ss/ß]e#kurzes a","Schlü[ss/ß]el#kurzes ü"]},
+{id:'dass',name:'das oder dass',kid:'Kannst du statt »das« auch <b>»dieses«</b> oder <b>»welches«</b> sagen? Dann schreibst du <b>das</b>. Geht das nicht, schreibst du <b>dass</b>.',erw:'Ersatzprobe: Lässt sich das Wort durch <b>»dieses«, »jenes«</b> oder <b>»welches«</b> ersetzen, schreibt man <b>das</b>. Sonst ist es die Konjunktion <b>dass</b>.',merk:'Passt »dieses« oder »welches« → das. Sonst → dass.',
+items:["Ich glaube, [dass/das] es heute regnet.#»welches es regnet« passt nicht → dass","[Das/Dass] Auto ist rot.#»Dieses Auto« → das","Das Buch, [das/dass] ich lese, ist spannend.#»welches ich lese« → das","Ich hoffe, [dass/das] du kommst.#»dieses du kommst« passt nicht → dass","Weißt du, [dass/das] morgen frei ist?#Ersatz passt nicht → dass","[Das/Dass] ist mein Bruder.#»Dieses ist mein Bruder« → das","Er sagt, [dass/das] er müde ist.#Ersatz passt nicht → dass","Das Kind, [das/dass] dort spielt, heißt Ben.#»welches dort spielt« → das","Es ist schön, [dass/das] du da bist.#Ersatz passt nicht → dass","Ich mag [das/dass] Lied.#»dieses Lied« → das"]},
+{id:'gross',name:'Groß oder klein',kid:'Namen für Dinge, Tiere, Menschen und Gefühle schreibt man <b>groß</b>. Probe: Passt <b>der, die</b> oder <b>das</b> davor? Dann groß! Am Satzanfang immer groß.',erw:'Nomen werden großgeschrieben. Probe: Artikel davorsetzen (der Hund, das Glück). Auch Verben und Adjektive werden groß, wenn sie als Nomen gebraucht werden (das Laufen, etwas Schönes).',merk:'Passt der, die, das davor → groß.',
+items:["Ich sehe einen [Hund/hund].#»der Hund« → groß","Wir [gehen/Gehen] nach Hause.#Tun-Wort → klein","Der Ball ist [rot/Rot].#Wie-Wort → klein","Am [Morgen/morgen] trinke ich Tee.#»der Morgen« → groß","Das [Laufen/laufen] macht Spaß.#»das Laufen« → groß","Ich [laufe/Laufe] schnell.#Tun-Wort → klein","Die [Katze/katze] schläft.#»die Katze« → groß","Er hat viel [Glück/glück].#»das Glück« → groß","Sie ist sehr [nett/Nett].#Wie-Wort → klein","[Heute/heute] ist Montag.#Satzanfang → groß","Wir treffen uns am [Freitag/freitag].#»der Freitag« → groß","Das ist etwas [Schönes/schönes].#»etwas« macht ein Nomen → groß"]},
+{id:'bd',name:'b oder d',kid:'<b>Bett-Trick:</b> Mach zwei Fäuste und streck die Daumen hoch. Die linke Hand ist ein <b>b</b>, die rechte ein <b>d</b>. Zusammen sehen sie aus wie ein Bett: <b>b ⎯ d</b>. Beim b kommt erst der Strich, dann der Bauch.',erw:'Merkhilfe »Bett«: Zwei Fäuste mit Daumen nach oben – links b, rechts d – bilden Kopf- und Fußteil eines Bettes. Beim <b>b</b> kommt erst der Strich, dann der Bauch; beim <b>d</b> erst der Bauch, dann der Strich.',merk:'b: erst Strich, dann Bauch. d: erst Bauch, dann Strich.',
+items:["[B/D]aum","[D/B]ose","[B/D]rot","[D/B]rache","[B/D]lume","[D/B]orf","[B/D]uch","[D/B]ino","[B/D]ett","Fe[d/b]er","Ga[b/d]el","Na[d/b]el","Schrau[b/d]e","Pu[d/b]el","Ra[d/b]","Ka[b/d]el","Bo[d/b]en"]},
+{id:'stamm',name:'Wortstamm & Verlängern',kid:'Am Wortende hörst du d und t, g und k, b und p oft gleich. <b>Verlängere das Wort</b>: Hund → Hun-de. Jetzt hörst du das d! Bei ä und äu: Suche ein verwandtes Wort mit a oder au (Häuser → Haus).',erw:'Auslautverhärtung: Am Wortende klingen d/t, g/k, b/p gleich. <b>Verlängerungsprobe</b> (Hund → Hunde) oder <b>Ableitung</b> (Hände → Hand, Häuser → Haus) zeigt die richtige Schreibung.',merk:'Verlängern oder verwandtes Wort suchen!',
+items:["Hun[d/t]#die Hunde","Wal[d/t]#die Wälder","Ber[g/k]#die Berge","Kin[d/t]#die Kinder","Kor[b/p]#die Körbe","gel[b/p]#die gelbe Jacke","Bil[d/t]#die Bilder","Zwer[g/k]#die Zwerge","Bro[t/d]#die Brote","Hel[d/t]#die Helden","Zu[g/k]#die Züge","B[äu/eu]me#der Baum","H[äu/eu]ser#das Haus","M[äu/eu]se#die Maus","F[eu/äu]er#kein »au«-Wort → eu","H[ä/e]nde#die Hand","K[ä/e]lte#kalt","l[ä/e]nger#lang","W[ä/e]sche#waschen","B[e/ä]tt#kein »a«-Wort → e"]}
+];
+const RULE=id=>RULES.find(r=>r.id===id);
+
+const TEXTS={kind:[
+{id:'k1',t:'Der Hund Bello',x:'Bel|lo ist ein klei|ner Hund. Er hat ein brau|nes Fell und lan|ge Oh|ren. Je|den Mor|gen geht Bel|lo mit Ma|ra in den Park. Dort spielt er mit dem Ball. Am liebs|ten springt er in je|de Pfüt|ze.',q:[['Was macht Bello am liebsten?','in Pfützen springen','schlafen','bellen'],['Wohin geht Bello jeden Morgen?','in den Park','in die Schule','zum Bäcker']]},
+{id:'k2',t:'Im Garten',x:'O|ma hat ei|nen gro|ßen Gar|ten. Dort wach|sen Äp|fel, Bir|nen und Erd|bee|ren. Tim hilft O|ma beim Gie|ßen. Ei|ne Bie|ne fliegt von Blu|me zu Blu|me. Am Nach|mit|tag es|sen sie Ku|chen.',q:[['Was essen sie am Nachmittag?','Kuchen','Suppe','Eis'],['Wobei hilft Tim?','beim Gießen','beim Kochen','beim Malen']]},
+{id:'k3',t:'Der Schneemann',x:'Heu|te liegt viel Schnee. Le|a und Ben bau|en ei|nen Schnee|mann. Er be|kommt ei|ne Ka|rot|te als Na|se und zwei Stei|ne als Au|gen. Ben holt sei|nen al|ten Hut. Jetzt sieht der Schnee|mann lus|tig aus.',q:[['Was bekommt der Schneemann als Nase?','eine Karotte','einen Stein','einen Hut'],['Wer holt den Hut?','Ben','Lea','Oma']]},
+{id:'k4',t:'Die Rakete',x:'Max baut ei|ne Ra|ke|te aus Pap|pe. Sie ist rot und hat drei Fens|ter. Max zählt laut: drei, zwei, eins, los! In sei|nem Kopf fliegt die Ra|ke|te bis zum Mond. Dort winkt ihm ein klei|ner grü|ner Mann zu.',q:[['Woraus baut Max die Rakete?','aus Pappe','aus Holz','aus Metall'],['Wie viele Fenster hat sie?','drei','zwei','vier']]}
+],erw:[
+{id:'e1',t:'Der Termin',x:'Herr Kai|ser hat mor|gen um neun Uhr ei|nen Ter|min in der Werk|statt. Sein Au|to braucht neu|e Rei|fen. Er nimmt den Fahr|zeug|schein mit und fragt nach dem Preis. Die Re|pa|ra|tur dau|ert et|wa zwei Stun|den. In der Zeit trinkt er ei|nen Kaf|fee beim Bä|cker ne|ben|an.',q:[['Warum fährt Herr Kaiser in die Werkstatt?','Er braucht neue Reifen.','Er braucht einen Ölwechsel.','Die Bremsen sind kaputt.'],['Wie lange dauert die Reparatur?','etwa zwei Stunden','eine halbe Stunde','den ganzen Tag']]},
+{id:'e2',t:'Die Nachricht',x:'Lie|be Kol|le|gen, die Be|spre|chung am Frei|tag fällt aus. Wir tref|fen uns statt|des|sen am Mon|tag um zehn Uhr im gro|ßen Raum. Bit|te bringt eu|re Plä|ne für den nächs|ten Mo|nat mit. Bei Fra|gen ruft mich ein|fach an. Vie|le Grü|ße, San|dra',q:[['Wann ist die neue Besprechung?','Montag um zehn Uhr','Freitag um zehn Uhr','Montag um neun Uhr'],['Was sollen alle mitbringen?','ihre Pläne','Kaffee','einen Laptop']]},
+{id:'e3',t:'Der Einkauf',x:'Am Sams|tag fährt Fa|mi|lie Mül|ler zum Ein|kau|fen. Auf der Lis|te ste|hen Brot, Milch, Kä|se, To|ma|ten und Wasch|mit|tel. An der Kas|se zahlt Frau Mül|ler mit Kar|te. Die Quit|tung legt sie in die Geld|bör|se. Zu Hau|se räumt die gan|ze Fa|mi|lie die Ta|schen aus.',q:[['Wie zahlt Frau Müller?','mit Karte','bar','mit dem Handy'],['Wann fahren sie einkaufen?','am Samstag','am Sonntag','am Freitag']]},
+{id:'e4',t:'Die Motorradtour',x:'Am Sonn|tag ist das Wet|ter end|lich schön. Jens holt sein Mo|tor|rad aus der Ga|ra|ge und prüft den Rei|fen|druck. Dann fährt er mit Freun|den durch das Sau|er|land. Mit|tags ma|chen sie Pau|se an ei|nem See. Am A|bend kommt er mü|de, a|ber glück|lich nach Hau|se.',q:[['Wo machen sie Mittagspause?','an einem See','an einer Tankstelle','im Wald'],['Was prüft Jens vor der Fahrt?','den Reifendruck','das Öl','das Licht']]}
+]};
+
+const METHODS=[
+{id:'laute',name:'Laute hören & Buchstaben',ic:'👂',ev:'Sehr gut belegt',desc:'Wort hören, fehlenden Buchstaben finden, kurze und lange Selbstlaute unterscheiden. In Studien die wirksamste Methode.'},
+{id:'silben',name:'Silben-Methode',ic:'🎵',ev:'In der Praxis bewährt',desc:'Silben zählen und Wörter aus Silben bauen. Farbige Silben helfen beim Lesen langer Wörter.'},
+{id:'regeln',name:'Rechtschreib-Regeln',ic:'📏',ev:'Gut belegt',desc:'Erst die Regel verstehen, dann üben – nach dem Prinzip bewährter Regeltrainings.'},
+{id:'stamm',name:'Wortstamm-Methode',ic:'🌳',ev:'Gut belegt',desc:'Verlängern und Ableiten: Hund → Hunde, Häuser → Haus.'},
+{id:'blitz',name:'Blitzlesen',ic:'⚡',ev:'Wirksam fürs Lesetempo',desc:'Wort kurz sehen und erkennen. Das Tempo passt sich deinem Können an.'},
+{id:'text',name:'Wiederholtes Lesen',ic:'📖',ev:'Gut belegt',desc:'Text vorlesen lassen, selbst laut lesen, Zeit stoppen, Fragen beantworten. Jeder Text 3×.'},
+{id:'diktat',name:'Hör-Diktat',ic:'✍️',ev:'Bewährte Übung',desc:'Wort oder Satz hören, schreiben und genau sehen, wo der Fehler war.'},
+{id:'karte',name:'Fehlerkartei',ic:'🗂️',ev:'Bewährt (Wiederholen)',desc:'Deine Fehlerwörter kommen nach Plan wieder, bis sie sitzen.'}
+];
+const M=id=>METHODS.find(m=>m.id===id);
+
+/* ================== Generatoren ================== */
+function pool(){return isKid()?W_KID:W_ERW.concat(W_KID.filter((_,i)=>i%3===0))}
+const MULTI=['sch','äu','ei','ie','eu','au','ch','ck','tz'];
+const CONF={sch:['sch','ch','sh','s'],'äu':['äu','eu','au','ei'],ei:['ei','ie','eu','ai'],ie:['ie','ei','i','e'],eu:['eu','äu','ei','au'],au:['au','eu','ou','a'],ch:['ch','sch','k','h'],ck:['ck','k','g','kk'],tz:['tz','z','ts','t'],
+b:['b','d','p','g'],d:['d','b','t','p'],p:['p','b','q','d'],g:['g','k','b','q'],k:['k','g','ck','c'],t:['t','d','tt','k'],m:['m','n','w','nn'],n:['n','m','u','nn'],f:['f','v','w','pf'],w:['w','v','f','m'],v:['v','f','w','u'],s:['s','z','ß','ss'],z:['z','s','tz','c'],u:['u','ü','o','n'],'ü':['ü','u','i','ö'],o:['o','ö','u','a'],'ö':['ö','o','ü','e'],a:['a','ä','o','e'],'ä':['ä','e','a','ö'],e:['e','ä','i','a'],i:['i','ie','e','ü'],l:['l','r','ll','n'],r:['r','l','rr','h']};
+function gapCandidates(w){const lw=w.toLowerCase();const out=[];let i=0;while(i<lw.length){const m=MULTI.find(g=>lw.startsWith(g,i));if(m){out.push({i,len:m.length,g:m});i+=m.length}else{if(CONF[lw[i]])out.push({i,len:1,g:lw[i]});i++}}return out}
+
+function confusions(w){const first=w[0];const upper=first!==first.toLowerCase();const lw=first.toLowerCase()+w.slice(1);const out=[];const add=x=>{if(x!==lw&&x.length>1&&out.indexOf(x)<0)out.push(x)};
+ const sw=[['b','d'],['d','b'],['p','q'],['ie','ei'],['ei','ie'],['m','n'],['n','m'],['n','u'],['ü','u'],['u','ü'],['ä','a'],['o','ö'],['f','v'],['w','v'],['ck','k'],['tz','z']];
+ for(const[a,b]of sw){let k=lw.indexOf(a);while(k>=0){add(lw.slice(0,k)+b+lw.slice(k+a.length));k=lw.indexOf(a,k+1)}}
+ const prim=shuffle(out);const sec=[];
+ for(let i=1;i<lw.length-1;i++){if(lw[i]!==lw[i+1])sec.push(lw.slice(0,i)+lw[i+1]+lw[i]+lw.slice(i+2))}
+ for(let i=1;i<lw.length;i++)sec.push(lw.slice(0,i)+lw.slice(i+1));
+ const all=prim.concat(shuffle(sec).filter(x=>x!==lw&&prim.indexOf(x)<0));
+ const uniq=[];all.forEach(x=>{if(uniq.indexOf(x)<0)uniq.push(x)});
+ return uniq.map(x=>upper?cap(x):x)}
+
+function parseItem(s){const parts=s.split('#');const m=parts[0].match(/^(.*?)\[(.+?)\](.*)$/);const opts=m[2].split('/');return{pre:m[1],post:m[3],ok:opts[0],opts,full:m[1]+opts[0]+m[3],hint:parts[1]||''}}
+
+function build(method,n,opt){
+ const q=[];
+ if(method==='laute'){for(let i=0;i<n;i++){if(Math.random()<0.4){const k=Math.random()<0.5;q.push({type:'kurzlang',item:{w:rnd(k?KURZ:LANG),kurz:k}})}else q.push({type:'laut',item:plain(rnd(pool()))})}}
+ else if(method==='silben'){const multi=pool().filter(w=>w.indexOf('|')>0);for(let i=0;i<n;i++){q.push(i%2?{type:'silbenbau',item:rnd(multi)}:{type:'silbe',item:rnd(pool())})}}
+ else if(method==='regeln'){const ids=opt&&opt.rule?[opt.rule]:weakRules(3,true);const per=Math.ceil(n/ids.length);ids.forEach(id=>{if(opt&&opt.info!==false)q.push({type:'info',item:id});shuffle(RULE(id).items).slice(0,per).forEach(s=>q.push({type:'regel',item:{rule:id,s}}))})}
+ else if(method==='stamm'){if(!opt||opt.info!==false)q.push({type:'info',item:'stamm'});shuffle(RULE('stamm').items).slice(0,n).forEach(s=>q.push({type:'regel',item:{rule:'stamm',s}}))}
+ else if(method==='blitz'){let p=pool().map(plain);if(isKid()&&(P().blitzMs||1000)>600)p=p.filter(w=>w.length<=7);shuffle(p).slice(0,n).forEach(w=>q.push({type:'blitz',item:w}))}
+ else if(method==='diktat'){const ws=pool().filter(w=>!isKid()||w.split('|').length<=3);const ss=isKid()?S_KID:S_ERW;for(let i=0;i<n;i++){q.push({type:'diktat',item:{t:Math.random()<(isKid()?0.25:0.4)?rnd(ss):plain(rnd(ws))}})}}
+ else if(method==='karte'){dueCards().slice(0,n).forEach(c=>q.push({type:'karte',item:{t:c.t}}))}
+ else if(method==='text'){q.push({type:'text',item:pickText().id})}
+ return q}
+
+function weakRules(k,excludeStamm){const p=P();const list=RULES.filter(r=>!(excludeStamm&&r.id==='stamm')).map(r=>{const s=(p.rules||{})[r.id]||{c:0,n:0};const acc=s.n?s.c/s.n:0.5;let score=s.n<6?-1+s.n*0.01:acc;if(isKid()&&r.id==='bd'&&s.n<10)score-=0.5;if(!isKid()&&(r.id==='bd')&&s.n===0)score+=0.3;return{id:r.id,score:score+Math.random()*0.05}});list.sort((a,b)=>a.score-b.score);return list.slice(0,k).map(x=>x.id)}
+function textsFor(){return TEXTS[isKid()?'kind':'erw']}
+function pickText(){const p=P();p.read=p.read||{};const ts=textsFor();return ts.find(t=>(p.read[t.id]||[]).length>0&&(p.read[t.id]||[]).length<3)||ts.find(t=>!(p.read[t.id]||[]).length)||ts.slice().sort((a,b)=>(p.read[a.id]||[]).length-(p.read[b.id]||[]).length)[0]}
+function dueCards(){const t=today();return (P().karte||[]).filter(c=>c.due<=t)}
+function addKarte(t){const p=P();p.karte=p.karte||[];const c=p.karte.find(x=>x.t===t);if(c){c.box=1;c.due=today()}else p.karte.push({t,box:1,due:today()})}
+const INT=[0,1,2,4,7,14];
+
+function planQueue(){const q=[];q.push(...build('laute',4));q.push(...build('silben',4));
+ const r=weakRules(2,false);r.forEach(id=>q.push(...build(id==='stamm'?'stamm':'regeln',4,{rule:id})));
+ q.push(...build('blitz',5));q.push(...build('diktat',4));q.push(...build('karte',4));
+ const p=P();const dayN=(p.days||[]).length;if(dayN%2===0)q.push(...build('text',1));return q}
+
+/* ================== Fehleranalyse ================== */
+function errTypes(ok,ans){const o=ok.replace(/[.!?]$/,''),a=ans.trim().replace(/[.!?]$/,'');const r=[];
+ if(o.toLowerCase()===a.toLowerCase())return[{t:'Groß- und Kleinschreibung',rule:'gross'}];
+ const lo=o.toLowerCase(),la=a.toLowerCase();
+ if((/(ie)/.test(lo))!==(/(ie)/.test(la)))r.push({t:'ie oder i',rule:'ie'});
+ if(lo.includes('ß')!==la.includes('ß')||(lo.match(/ss/g)||[]).length!==(la.match(/ss/g)||[]).length)r.push({t:'ss oder ß',rule:'ss'});
+ const dbl=s=>(s.match(/([bdfglmnprt])\1/g)||[]).join(',');if(dbl(lo.replace(/ss/g,''))!==dbl(la.replace(/ss/g,'')))r.push({t:'doppelter Mitlaut',rule:'doppel'});
+ if(lo.includes('ck')!==la.includes('ck'))r.push({t:'ck oder k',rule:'ck'});
+ if(lo.includes('tz')!==la.includes('tz'))r.push({t:'tz oder z',rule:'tz'});
+ const h=s=>(s.match(/[aeiouäöü]h[lmnr]/g)||[]).length;if(h(lo)!==h(la))r.push({t:'Dehnungs-h',rule:'dehn'});
+ const bd=la.replace(/[bd]/g,c=>c==='b'?'d':'b');if(lo.length===la.length&&(bd===lo||[...lo].some((c,i)=>(c==='b'&&la[i]==='d')||(c==='d'&&la[i]==='b'))))r.push({t:'b und d verwechselt',rule:'bd'});
+ if(/\bdass?\b/.test(lo)&&(lo.match(/\bdass\b/g)||[]).length!==(la.match(/\bdass\b/g)||[]).length)r.push({t:'das oder dass',rule:'dass'});
+ if(!r.length)r.push({t:'Buchstaben fehlen, sind zu viel oder vertauscht',rule:null});return r}
+function diffHTML(a,b){const n=a.length,m=b.length;const dp=Array.from({length:n+1},()=>new Array(m+1).fill(0));
+ for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)dp[i][j]=a[i]===b[j]?dp[i+1][j+1]+1:Math.max(dp[i+1][j],dp[i][j+1]);
+ let i=0,j=0,out='';while(i<n&&j<m){if(a[i]===b[j]){out+=esc(a[i]);i++;j++}else if(dp[i+1][j]>=dp[i][j+1]){out+='<del>'+esc(a[i])+'</del>';i++}else{out+='<ins>'+esc(b[j])+'</ins>';j++}}
+ while(i<n)out+='<del>'+esc(a[i++])+'</del>';while(j<m)out+='<ins>'+esc(b[j++])+'</ins>';return out}
+
+/* ================== Darstellung ================== */
+function silbenHTML(s){return s.split(' ').map(tok=>{const p=tok.split('|');return p.map((x,i)=>'<span class="s'+(i%2)+'">'+esc(x)+'</span>').join('')}).join(' ')}
+function sylOf(w){const f=W_KID.concat(W_ERW).find(x=>plain(x)===w);return f||w}
+const PRAISE_K=['Super! ⭐','Klasse! ⭐','Toll gemacht! ⭐','Spitze! ⭐','Weiter so! ⭐','Prima! ⭐'];
+const praise=()=>isKid()?rnd(PRAISE_K):'Richtig.';
+const wrongMsg=()=>isKid()?'Fast! Schau mal genau:':'Nicht ganz – so ist es richtig:';
+function sayBtn(t,id){return `<button class="say" id="${id||'sb'}" aria-label="Anhören">🔊</button>`}
+function optButtons(el,opts,okVal,done,fbFn,cls){const box=el.querySelector('.opts');shuffle(opts).forEach(o=>{const b=document.createElement('button');b.className='opt'+(cls?' '+cls:'');b.textContent=o;b.onclick=()=>{const right=o===okVal;b.classList.add(right?'right':'wrong');if(!right)[...box.children].forEach(c=>{if(c.textContent===okVal)c.classList.add('right')});done(right,fbFn(right,o))};box.appendChild(b)})}
+
+/* ================== Übungstypen ================== */
+const EX={};
+EX.info={render(el,id,done){const r=RULE(id);el.innerHTML=`<div class="rule"><h3>📏 ${esc(r.name)}</h3><p>${isKid()?r.kid:r.erw}</p><div class="merk">Merksatz: ${esc(r.merk)}</div></div>`;done(true,'',true)}};
+EX.laut={render(el,w,done){const c=gapCandidates(w);const pick=rnd(c.filter(x=>x.len>1).length&&Math.random()<0.5?c.filter(x=>x.len>1):c);
+ const isUp=pick.i===0&&w[0]!==w[0].toLowerCase();const okG=isUp?cap(pick.g):pick.g;
+ const opts=[];CONF[pick.g].forEach(o=>{const v=isUp?cap(o):o;if(opts.indexOf(v)<0)opts.push(v)});
+ el.innerHTML=`<div class="task">Hör genau hin: Welcher Buchstabe fehlt?</div>${sayBtn()}<div class="big">${esc(w.slice(0,pick.i))}<span class="gap">?</span>${esc(w.slice(pick.i+pick.len))}</div>${hasTTS?'':'<p class="muted">(Keine Sprachausgabe auf diesem Gerät)</p>'}<div class="opts"></div>`;
+ el.querySelector('#sb').onclick=()=>say(w);say(w);
+ optButtons(el,opts,okG,done,()=>`<div class="big">${silbenHTML(sylOf(w))}</div>`)}};
+EX.kurzlang={render(el,it,done){el.innerHTML=`<div class="task">Hör auf den ersten Selbstlaut: kurz oder lang?</div>${sayBtn()}${hasTTS?'<div class="big">?</div>':`<div class="big">${esc(it.w)}</div>`}<div class="opts"></div>`;
+ el.querySelector('#sb').onclick=()=>say(it.w);say(it.w);
+ optButtons(el,['kurz ●','lang ━'],it.kurz?'kurz ●':'lang ━',done,()=>`<div class="big">${esc(it.w)}</div><p>${it.kurz?'Kurzer Selbstlaut – darum oft doppelter Mitlaut, ck oder tz danach.':'Langer Selbstlaut – darum nur ein Mitlaut (oder ie / h / ß).'}</p>`)}};
+EX.silbe={render(el,s,done){const w=plain(s),n=s.split('|').length;el.innerHTML=`<div class="task">Wie viele Silben hat das Wort? Klatsch mit!</div>${sayBtn()}<div class="big">${esc(w)}</div><div class="opts"></div>`;
+ el.querySelector('#sb').onclick=()=>say(w,true);say(w,true);
+ optButtons(el,['1','2','3','4','5'],String(n),done,()=>`<div class="big">${silbenHTML(s)}</div><p>${s.split('|').map(esc).join(' – ')} = ${n} Silbe${n>1?'n':''}</p>`)}};
+EX.silbenbau={render(el,s,done){const sy=s.split('|');const w=plain(s);const kid=isKid();let tiles=shuffle(sy.map((x,i)=>({x:kid?x:x.toLowerCase(),i})));if(tiles.every((t,k)=>t.i===k)&&sy.length>1)tiles.reverse();const placed=[];
+ el.innerHTML=`<div class="task">Bau das Wort aus den Silben. Tippe sie in der richtigen Reihenfolge an.</div>${sayBtn()}<div class="tiles slot" id="sl"></div><div class="tiles" id="tl"></div>`;
+ el.querySelector('#sb').onclick=()=>say(w);say(w);
+ const draw=()=>{const sl=el.querySelector('#sl'),tl=el.querySelector('#tl');sl.innerHTML='';tl.innerHTML='';
+  placed.forEach((t,k)=>{const b=document.createElement('button');b.className='tile';b.textContent=t.x;b.onclick=()=>{placed.splice(k,1);tiles.push(t);draw()};sl.appendChild(b)});
+  tiles.forEach((t,k)=>{const b=document.createElement('button');b.className='tile';b.textContent=t.x;b.onclick=()=>{tiles.splice(k,1);placed.push(t);draw();if(!tiles.length){const ok=placed.every((p,j)=>p.x.toLowerCase()===sy[j].toLowerCase());done(ok,`<div class="big">${silbenHTML(s)}</div>`)}};tl.appendChild(b)})};draw()}};
+EX.regel={render(el,it,done){const r=RULE(it.rule),p=parseItem(it.s);const isSent=p.full.indexOf(' ')>=0;
+ el.innerHTML=`<div class="task">📏 ${esc(r.name)} – was gehört in die Lücke?</div><div class="${isSent?'sent':'big'}">${esc(p.pre)}<span class="gap">?</span>${esc(p.post)}</div><div class="opts"></div><button class="link small" id="rh">Regel nochmal zeigen</button><div id="rbox"></div>`;
+ el.querySelector('#rh').onclick=()=>{el.querySelector('#rbox').innerHTML=`<div class="rule small">${isKid()?r.kid:r.erw}<div class="merk">${esc(r.merk)}</div></div>`};
+ optButtons(el,p.opts,p.ok,(ok,html)=>{say(p.full);done(ok,html)},()=>`<div class="${isSent?'sent':'big'}">${esc(p.pre)}<b style="color:var(--ok)">${esc(p.ok)}</b>${esc(p.post)}</div>${p.hint?'<p>💡 '+esc(p.hint)+'</p>':''}`)}};
+EX.blitz={render(el,w,done){const p=P();const ms=p.blitzMs||(isKid()?1000:700);const opts=[w].concat(confusions(w).slice(0,3));
+ el.innerHTML=`<div class="task">Gleich blitzt ein Wort auf (${ms} ms). Welches war es?</div><button class="btn pri" id="go">Zeigen</button><div class="big" id="fl" style="min-height:1.6em"></div><div class="opts"></div>`;
+ el.querySelector('#go').onclick=function(){this.remove();const fl=el.querySelector('#fl');fl.textContent=w;setTimeout(()=>{fl.textContent='＊＊＊';optButtons(el,opts,w,(ok,html)=>{p.blitzMs=Math.round(Math.max(150,Math.min(2000,ms*(ok?0.9:1.15))));save();done(ok,html)},(ok)=>`<div class="big">${silbenHTML(sylOf(w))}</div><p class="muted">Neues Tempo: ${Math.round(Math.max(150,Math.min(2000,ms*(ok?0.9:1.15))))} ms</p>`)},ms)}}};
+function typeEx(el,t,done,onRes,label){el.innerHTML=`<div class="task">${label}</div><div class="row" style="justify-content:center">${sayBtn()}<button class="say" id="sl" aria-label="Langsam">🐢</button></div>${hasTTS?'':`<p class="muted">Keine Sprachausgabe – lies es dir kurz durch, dann verdecke es: <b>${esc(t)}</b></p>`}<input class="type" id="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Hier schreiben"><button class="btn pri wide" id="ck">Prüfen</button>`;
+ el.querySelector('#sb').onclick=()=>say(t);el.querySelector('#sl').onclick=()=>say(t,true);say(t);
+ const inp=el.querySelector('#in');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
+ const check=()=>{const a=inp.value.trim().replace(/\s+/g,' ');if(!a)return;const norm=s=>s.replace(/[.!?]$/,'');const ok=norm(a)===norm(t);onRes&&onRes(ok);if(!ok)addKarte(t);
+  const ets=ok?[]:errTypes(t,a);const isSent=t.indexOf(' ')>=0;
+  done(ok,ok?`<div class="${isSent?'sent':'big'}">${isSent?esc(t):silbenHTML(sylOf(t))}</div>`:`<p class="muted">Deine Schreibweise mit Korrektur:</p><div class="${isSent?'sent':'big'}">${diffHTML(norm(a),norm(t))}</div><p class="muted">Richtig:</p><div class="${isSent?'sent':'big'}">${isSent?esc(t):silbenHTML(sylOf(t))}</div><p>🔎 Fehlerart: <b>${ets.map(e=>esc(e.t)).join(', ')}</b></p>${ets.filter(e=>e.rule).map(e=>`<p class="small">Merksatz: ${esc(RULE(e.rule).merk)}</p>`).join('')}<p class="small muted">Das Wort kommt in deine Fehlerkartei.</p>`)};
+ el.querySelector('#ck').onclick=check;inp.onkeydown=e=>{if(e.key==='Enter')check()}}
+EX.diktat={render(el,it,done){typeEx(el,it.t,done,null,'Hör zu und schreib, was du hörst.')}};
+EX.karte={render(el,it,done){typeEx(el,it.t,done,ok=>{const p=P();const c=(p.karte||[]).find(x=>x.t===it.t);if(!c)return;if(ok){c.box++;if(c.box>=INT.length){p.karte=p.karte.filter(x=>x!==c);p.learned=(p.learned||0)+1}else c.due=addDays(INT[c.box])}save()},'🗂️ Fehlerkartei: Hör zu und schreib das Wort.')}};
+EX.text={render(el,id,done){const p=P();p.read=p.read||{};const T=textsFor().find(t=>t.id===id)||TEXTS.kind.concat(TEXTS.erw).find(t=>t.id===id);const prev=p.read[id]||[];
+ el.innerHTML=`<div class="task">📖 Wiederholtes Lesen – Durchgang ${prev.length+1} von 3</div><h3>${esc(T.t)}</h3><div class="text">${silbenHTML(T.x)}</div>
+ <p class="small muted">1. Erst vorlesen lassen und mitlesen. 2. Dann selbst laut lesen und Zeit stoppen.</p>
+ <div class="row" style="justify-content:center"><button class="btn" id="vl">🔊 Vorlesen</button><button class="btn pri" id="st">▶ Ich lese los</button></div>
+ <div class="timer" id="tm"></div><div id="qa"></div>`;
+ el.querySelector('#vl').onclick=()=>say(T.x);
+ let t0=0,iv=null;const tm=el.querySelector('#tm');
+ el.querySelector('#st').onclick=function(){if(!t0){stopSay();t0=Date.now();this.textContent='⏹ Fertig';iv=setInterval(()=>{tm.textContent=Math.round((Date.now()-t0)/1000)+' s'},250)}else{clearInterval(iv);const sec=Math.max(1,Math.round((Date.now()-t0)/1000));p.read[id]=prev.concat([sec]);save();this.remove();
+  const best=prev.length?Math.min(...prev):null;tm.innerHTML=sec+' s'+(best?`<div class="small">${sec<best?'🎉 Schneller als vorher ('+best+' s)!':'Bisher bestes: '+best+' s'}</div>`:'');ask(0,0)}};
+ const ask=(k,score)=>{const qa=el.querySelector('#qa');if(k>=T.q.length){done(score===T.q.length,`<p>${score} von ${T.q.length} Fragen richtig.</p>`);return}
+  const q=T.q[k];qa.innerHTML=`<div class="sent"><b>Frage ${k+1}:</b> ${esc(q[0])}</div><div class="opts"></div>`;
+  const box=qa.querySelector('.opts');shuffle(q.slice(1)).forEach(o=>{const b=document.createElement('button');b.className='opt wideopt';b.textContent=o;b.onclick=()=>{const ok=o===q[1];b.classList.add(ok?'right':'wrong');[...box.children].forEach(c=>{c.disabled=true;if(c.textContent===q[1])c.classList.add('right')});setTimeout(()=>ask(k+1,score+(ok?1:0)),900)};box.appendChild(b)})}}};
+
+/* ================== Ablauf einer Übungsrunde ================== */
+let S=null;
+const T2M=q=>({laut:'laute',kurzlang:'laute',silbe:'silben',silbenbau:'silben',blitz:'blitz',diktat:'diktat',karte:'karte',text:'text',regel:q.item.rule==='stamm'?'stamm':'regeln'})[q.type];
+function startSession(title,queue){if(!queue.length){screenMsg(title,'Hier gibt es gerade nichts zu üben. Super!');return}S={title,queue,i:0,res:{},stars:0};runQ()}
+function record(q,ok){const m=T2M(q);if(!m)return;const r=S.res[m]=S.res[m]||{c:0,n:0};r.n++;if(ok)r.c++;
+ if(q.type==='regel'){const p=P();p.rules=p.rules||{};const s=p.rules[q.item.rule]=p.rules[q.item.rule]||{c:0,n:0};s.n++;if(ok)s.c++}
+ if(ok){S.stars++}}
+function runQ(){atHome=false;if(S.i>=S.queue.length)return endSession();const q=S.queue[S.i];
+ app.innerHTML=`<div class="top"><button class="link" id="quit">✕</button><div class="prog"><div style="width:${Math.round(S.i/S.queue.length*100)}%"></div></div><span class="cnt">${S.i+1}/${S.queue.length}</span>${isKid()?`<span class="stars">⭐${S.stars}</span>`:''}</div><div id="ex" class="ex"></div><div id="fb"></div>`;
+ $('#quit').onclick=()=>{stopSay();endSession()};
+ const ex=$('#ex');let answered=false;
+ EX[q.type].render(ex,q.item,(ok,html,noScore)=>{if(answered)return;answered=true;ex.classList.add('locked');if(!noScore)record(q,ok);
+  const fb=$('#fb');fb.innerHTML=`<div class="fb ${noScore||ok?'ok':'bad'}">${noScore?'':`<div class="fbh">${ok?praise():wrongMsg()}</div>`}${html||''}<button class="btn pri wide" id="nx">${noScore?'Los geht’s ›':'Weiter ›'}</button></div>`;
+  $('#nx').onclick=()=>{stopSay();S.i++;runQ()};if(!noScore)setTimeout(()=>{try{fb.scrollIntoView({behavior:'smooth',block:'nearest'})}catch(e){}},50)})}
+function endSession(){const p=P();const d=today();let c=0,n=0;
+ Object.keys(S.res).forEach(m=>{const r=S.res[m];c+=r.c;n+=r.n;p.stats=p.stats||{};const s=p.stats[m]=p.stats[m]||{c:0,n:0,hist:[]};s.c+=r.c;s.n+=r.n;s.hist.push({d,c:r.c,n:r.n});if(s.hist.length>60)s.hist=s.hist.slice(-60)});
+ if(n){p.days=p.days||[];if(p.days.indexOf(d)<0)p.days.push(d);p.stars=(p.stars||0)+S.stars}save();
+ const rows=Object.keys(S.res).map(m=>{const r=S.res[m];return `<div class="stat"><span>${M(m).ic} ${esc(M(m).name)}</span><b>${r.c} / ${r.n}</b></div><div class="bar"><div style="width:${Math.round(r.c/r.n*100)}%"></div></div>`}).join('');
+ const t=S.title;S=null;
+ app.innerHTML=`<h1>${isKid()?'Geschafft! 🎉':'Runde beendet'}</h1><div class="card">${n?`<p><b>${c} von ${n}</b> richtig (${Math.round(c/n*100)} %)</p>${isKid()?`<p class="stars">+${c} Sterne ⭐ – insgesamt ${p.stars||0}</p>`:''}${rows}`:'<p>Keine Aufgaben beantwortet.</p>'}</div>
+ <button class="btn pri wide" id="h">Zur Startseite</button>`;$('#h').onclick=home}
+function screenMsg(t,m){atHome=false;app.innerHTML=`<h1>${esc(t)}</h1><div class="card"><p>${esc(m)}</p></div><button class="btn pri wide" id="h">Zur Startseite</button>`;$('#h').onclick=home}
+
+/* ================== Bildschirme ================== */
+let atHome=false;
+window.appBack=function(){stopSay();if(atHome)return false;if(S){endSession();return true}home();return true};
+function home(){applySettings();const p=P();if(!p)return profiles();atHome=true;
+ const due=dueCards().length;const streak=(p.days||[]).length;
+ app.innerHTML=`<div class="row" style="justify-content:space-between"><h1>Hallo ${esc(p.name)}${isKid()?' 👋':''}</h1><button class="link" id="pf">Profil ⇄</button></div>
+ <p class="muted">${p.mode==='kind'?'Kinder-Modus':'Erwachsenen-Modus'} · ${streak} Übungstag${streak===1?'':'e'}${isKid()?` · <span class="stars">⭐ ${p.stars||0}</span>`:''}</p>
+ <div class="card hero" id="plan"><h2>▶ Heute trainieren</h2><p>ca. 15 Minuten · mischt die wirksamsten Methoden und übt gezielt deine Schwachstellen</p></div>
+ <h2>Methoden einzeln wählen</h2><div class="grid">${METHODS.map(m=>`<div class="card m" data-m="${m.id}"><span class="ic">${m.ic}</span><b>${esc(m.name)}</b><span class="ev">${esc(m.ev)}</span><span class="small muted">${esc(m.desc)}</span>${m.id==='karte'?`<span class="small"><b>${due}</b> Wörter fällig</span>`:''}</div>`).join('')}</div>
+ <div class="row" style="margin-top:12px"><button class="btn" id="st">📊 Fortschritt</button><button class="btn" id="se">⚙️ Einstellungen</button><button class="btn" id="ab">ℹ️ Methoden</button></div>`;
+ $('#pf').onclick=profiles;$('#plan').onclick=()=>startSession('Heute trainieren',planQueue());$('#st').onclick=progress;$('#se').onclick=settings;$('#ab').onclick=about;
+ document.querySelectorAll('[data-m]').forEach(c=>c.onclick=()=>method(c.dataset.m))}
+function method(id){if(id==='regeln')return rulesMenu();
+ const n={laute:10,silben:10,stamm:10,blitz:10,diktat:8,karte:10,text:1}[id];
+ if(id==='text')return textsMenu();startSession(M(id).name,build(id,n))}
+function rulesMenu(){atHome=false;const p=P();p.rules=p.rules||{};
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>📏 Rechtschreib-Regeln</h1><p class="muted">Wähle eine Regel oder lass die App deine schwächsten Regeln mischen.</p>
+ <div class="card hero" id="mx"><h2>Meine Schwachstellen mischen</h2><p>3 Regeln, die du am wenigsten kannst</p></div>
+ ${RULES.filter(r=>r.id!=='stamm').map(r=>{const s=p.rules[r.id];const a=s&&s.n?Math.round(s.c/s.n*100):null;return `<div class="card prof" data-r="${r.id}"><b>${esc(r.name)}</b><span class="small muted">${a===null?'neu':a+' %'}</span></div>`}).join('')}`;
+ $('#bk').onclick=home;$('#mx').onclick=()=>startSession('Regeln gemischt',build('regeln',12));
+ document.querySelectorAll('[data-r]').forEach(c=>c.onclick=()=>startSession(RULE(c.dataset.r).name,build('regeln',12,{rule:c.dataset.r})))}
+function textsMenu(){atHome=false;const p=P();p.read=p.read||{};
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>📖 Wiederholtes Lesen</h1><p class="muted">Lies jeden Text dreimal laut. Am besten an verschiedenen Tagen – du wirst merken, wie du schneller wirst.</p>
+ ${textsFor().map(t=>{const r=p.read[t.id]||[];return `<div class="card prof" data-t="${t.id}"><div><b>${esc(t.t)}</b><div class="small muted">${r.length?r.length+'× gelesen · Zeiten: '+r.join(' s → ')+' s':'noch nicht gelesen'}</div></div><span>${r.length>=3?'✅':'›'}</span></div>`}).join('')}`;
+ $('#bk').onclick=home;document.querySelectorAll('[data-t]').forEach(c=>c.onclick=()=>startSession('Lesen',[{type:'text',item:c.dataset.t}]))}
+function progress(){atHome=false;const p=P();const st=p.stats||{};
+ const info=METHODS.map(m=>{const s=st[m.id];if(!s||!s.n)return null;const h=s.hist;const avg=a=>{const c=a.reduce((x,y)=>x+y.c,0),n=a.reduce((x,y)=>x+y.n,0);return n?c/n:0};
+  const first=avg(h.slice(0,3)),last=avg(h.slice(-3));return{m,acc:s.c/s.n,n:s.n,sessions:h.length,delta:h.length>=4?last-first:null}}).filter(Boolean);
+ const withD=info.filter(x=>x.delta!==null).sort((a,b)=>b.delta-a.delta);
+ const best=withD.length&&withD[0].delta>0?withD[0]:null;const weak=info.slice().sort((a,b)=>a.acc-b.acc)[0];
+ const rs=RULES.map(r=>{const s=(p.rules||{})[r.id];return s&&s.n?{r,acc:s.c/s.n,n:s.n}:null}).filter(Boolean).sort((a,b)=>a.acc-b.acc);
+ const reads=textsFor().map(t=>{const r=(p.read||{})[t.id]||[];return r.length?`<div class="stat"><span>${esc(t.t)}</span><span>${r.join(' → ')} s</span></div>`:''}).join('');
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>📊 Was hilft am besten?</h1>
+ ${info.length?'':'<div class="card"><p>Noch keine Daten. Übe ein paar Tage – dann siehst du hier, welche Methode bei dir am meisten bringt.</p></div>'}
+ ${best?`<div class="card"><span class="tag">Wirkt bei dir am besten</span><h3>${best.m.ic} ${esc(best.m.name)}</h3><p class="small">+${Math.round(best.delta*100)} Prozentpunkte seit den ersten Runden.</p></div>`:''}
+ ${weak&&info.length>1?`<div class="card"><span class="tag warn">Braucht mehr Übung</span><h3>${weak.m.ic} ${esc(weak.m.name)}</h3><p class="small">${Math.round(weak.acc*100)} % richtig – der Tagesplan übt das öfter.</p></div>`:''}
+ ${info.length?`<h2>Methoden</h2><div class="card">${info.map(x=>`<div class="stat"><span>${x.m.ic} ${esc(x.m.name)}</span><span>${Math.round(x.acc*100)} %${x.delta!==null?` <span class="small ${x.delta>=0?'':'muted'}">(${x.delta>=0?'+':''}${Math.round(x.delta*100)})</span>`:''}</span></div><div class="bar"><div style="width:${Math.round(x.acc*100)}%"></div></div><div class="small muted" style="margin-bottom:8px">${x.n} Aufgaben · ${x.sessions} Runden</div>`).join('')}<p class="small muted">Die Zahl in Klammern zeigt die Verbesserung von den ersten 3 zu den letzten 3 Runden (ab 4 Runden).</p></div>`:''}
+ ${rs.length?`<h2>Regeln</h2><div class="card">${rs.map(x=>`<div class="stat"><span>${esc(x.r.name)}</span><span>${Math.round(x.acc*100)} %</span></div><div class="bar"><div style="width:${Math.round(x.acc*100)}%"></div></div>`).join('')}</div>`:''}
+ <h2>Lesen</h2><div class="card"><div class="stat"><span>⚡ Blitzlesen-Tempo</span><b>${p.blitzMs||(isKid()?1000:700)} ms</b></div>${reads||'<p class="small muted">Noch keine Lesezeiten.</p>'}</div>
+ <h2>Fehlerkartei</h2><div class="card"><div class="stat"><span>Wörter in der Kartei</span><b>${(p.karte||[]).length}</b></div><div class="stat"><span>Gelernt (rausgeflogen)</span><b>${p.learned||0}</b></div>${(p.karte||[]).length?`<p class="small muted">${(p.karte||[]).slice(0,30).map(c=>esc(c.t)).join(' · ')}</p>`:''}</div>`;
+ $('#bk').onclick=home}
+function settings(){atHome=false;const s=DB.set;const p=P();
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>⚙️ Einstellungen</h1>
+ <div class="card"><label class="f">Schriftgröße</label><input type="range" min="16" max="34" value="${s.size}" id="fs">
+ <label class="f">Buchstabenabstand</label><div class="seg" id="sp">${['normal','etwas','weit','sehr weit'].map((t,i)=>`<button class="btn small ${s.space===i?'on':''}" data-i="${i}">${t}</button>`).join('')}</div>
+ <label class="f">Silben farbig anzeigen</label><div class="seg" id="sy"><button class="btn small ${s.silben?'on':''}" data-v="1">an</button><button class="btn small ${!s.silben?'on':''}" data-v="0">aus</button></div>
+ <label class="f">Sprechtempo</label><input type="range" min="0.5" max="1.2" step="0.05" value="${s.rate}" id="rt"><button class="btn small" id="tt">🔊 Test</button>
+ <p class="sent">Vor|schau: Die <b>${silbenHTML('Schmet|ter|lin|ge')}</b> flie|gen.</p></div>
+ <div class="card"><label class="f">Modus für ${esc(p.name)}</label><div class="seg" id="md"><button class="btn small ${p.mode==='kind'?'on':''}" data-v="kind">Kind</button><button class="btn small ${p.mode==='erw'?'on':''}" data-v="erw">Erwachsener</button></div>
+ <p class="small muted">Kind: kindgerechte Wörter, Sterne, einfache Erklärungen. Erwachsener: Alltagswörter (Arbeit, Behörde, Auto), sachliche Erklärungen.</p></div>
+ <div class="card"><button class="btn small" id="rs">Fortschritt von ${esc(p.name)} zurücksetzen</button><div id="rsc"></div></div>
+ <p class="small muted">${hasTTS?(NATIVE?'Sprachausgabe: Android (Deutsch)':deVoice?'Deutsche Stimme: '+esc(deVoice.name):'Sprachausgabe vorhanden – ggf. in den Handy-Einstellungen eine deutsche Stimme installieren.'):'Dieses Gerät hat keine Sprachausgabe. Hör-Übungen zeigen dann das Wort an.'}</p>`;
+ $('#bk').onclick=home;
+ $('#fs').oninput=e=>{s.size=+e.target.value;applySettings();save()};
+ document.querySelectorAll('#sp button').forEach(b=>b.onclick=()=>{s.space=+b.dataset.i;save();settings()});
+ document.querySelectorAll('#sy button').forEach(b=>b.onclick=()=>{s.silben=b.dataset.v==='1';save();settings()});
+ document.querySelectorAll('#md button').forEach(b=>b.onclick=()=>{p.mode=b.dataset.v;save();settings()});
+ $('#rt').oninput=e=>{s.rate=+e.target.value;save()};$('#tt').onclick=()=>say('Das ist ein Test. Hallo!');
+ $('#rs').onclick=()=>{$('#rsc').innerHTML='<p>Wirklich alles löschen?</p><button class="btn small" id="rsy">Ja, löschen</button>';$('#rsy').onclick=()=>{Object.assign(p,{stats:{},rules:{},karte:[],read:{},days:[],stars:0,learned:0,blitzMs:null});save();home()}};
+ applySettings()}
+function about(){atHome=false;app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>ℹ️ Warum diese Methoden?</h1>
+ <div class="card"><p>Eine große Auswertung aller guten Studien (Universität München, 2014) zeigt: Am besten hilft <b>systematisches Training von Buchstabe und Laut</b>, verbunden mit Lesen und Rechtschreibregeln. Farbbrillen, reines Hörtraining oder Bewegungsübungen helfen dagegen kaum nachweisbar.</p>
+ <p>Diese App kombiniert darum:</p>
+ ${METHODS.map(m=>`<p>${m.ic} <b>${esc(m.name)}</b> – ${esc(m.desc)}</p>`).join('')}
+ <p>Wichtig: <b>Lieber jeden Tag 15 Minuten als einmal pro Woche eine Stunde.</b> Fehler sind normal – sie zeigen, was als Nächstes geübt wird.</p>
+ <p class="small muted">Die App ersetzt keine Diagnose oder Lerntherapie. Bei starken Schwierigkeiten: Kinderarzt, Kinder- und Jugendpsychiater oder Lerntherapeutin fragen (Schule: Nachteilsausgleich). Erwachsene finden Kurse z. B. bei der Volkshochschule.</p></div>`;$('#bk').onclick=home}
+function profiles(){atHome=!P();
+ app.innerHTML=`<h1>Wer übt?</h1>${DB.profiles.map(p=>`<div class="card prof" data-p="${p.id}"><div><b>${esc(p.name)}</b><div class="small muted">${p.mode==='kind'?'Kind':'Erwachsener'} · ${(p.days||[]).length} Übungstage</div></div><span>›</span></div>`).join('')}
+ <div class="card"><h3>Neues Profil</h3><input class="txt" id="nm" placeholder="Name" maxlength="20"><div class="seg" style="margin-top:10px" id="md"><button class="btn small on" data-v="kind">Kind</button><button class="btn small" data-v="erw">Erwachsener</button></div><button class="btn pri wide" id="add">Profil anlegen</button></div>`;
+ let mode='kind';document.querySelectorAll('#md button').forEach(b=>b.onclick=()=>{mode=b.dataset.v;document.querySelectorAll('#md button').forEach(x=>x.classList.toggle('on',x===b))});
+ document.querySelectorAll('[data-p]').forEach(c=>c.onclick=()=>{DB.cur=c.dataset.p;save();home()});
+ $('#add').onclick=()=>{const n=$('#nm').value.trim();if(!n){$('#nm').focus();return}const id='p'+Date.now();DB.profiles.push({id,name:n,mode,stats:{},rules:{},karte:[],read:{},days:[],stars:0});DB.cur=id;save();home()}}
+
+applySettings();home();
+/*PWA_SW*/
+</script>
+</body>
+</html>
