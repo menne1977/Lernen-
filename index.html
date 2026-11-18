@@ -262,7 +262,7 @@ function typeEx(el,t,done,onRes,label){el.innerHTML=`<div class="task">${label}<
  el.querySelector('#sb').onclick=()=>say(t);el.querySelector('#sl').onclick=()=>say(t,true);say(t);
  const inp=el.querySelector('#in');setTimeout(()=>{try{inp.focus()}catch(e){}},50);
  const check=()=>{const a=inp.value.trim().replace(/\s+/g,' ');if(!a)return;const norm=s=>s.replace(/[.!?]$/,'');const ok=norm(a)===norm(t);onRes&&onRes(ok);if(!ok)addKarte(t);
-  const ets=ok?[]:errTypes(t,a);const isSent=t.indexOf(' ')>=0;
+  const ets=ok?[]:errTypes(t,a);const isSent=t.indexOf(' ')>=0;if(!ok){const pp=P();pp.errs=pp.errs||{};if(S){S.errs=S.errs||{}}ets.forEach(e=>{pp.errs[e.t]=(pp.errs[e.t]||0)+1;if(S)S.errs[e.t]=(S.errs[e.t]||0)+1});save()}
   done(ok,ok?`<div class="${isSent?'sent':'big'}">${isSent?esc(t):silbenHTML(sylOf(t))}</div>`:`<p class="muted">Deine Schreibweise mit Korrektur:</p><div class="${isSent?'sent':'big'}">${diffHTML(norm(a),norm(t))}</div><p class="muted">Richtig:</p><div class="${isSent?'sent':'big'}">${isSent?esc(t):silbenHTML(sylOf(t))}</div><p>🔎 Fehlerart: <b>${ets.map(e=>esc(e.t)).join(', ')}</b></p>${ets.filter(e=>e.rule).map(e=>`<p class="small">Merksatz: ${esc(RULE(e.rule).merk)}</p>`).join('')}<p class="small muted">Das Wort kommt in deine Fehlerkartei.</p>`)};
  el.querySelector('#ck').onclick=check;inp.onkeydown=e=>{if(e.key==='Enter')check()}}
 EX.diktat={render(el,it,done){typeEx(el,it.t,done,null,'Hör zu und schreib, was du hörst.')}};
@@ -298,10 +298,58 @@ function endSession(){const p=P();const d=today();let c=0,n=0;
  Object.keys(S.res).forEach(m=>{const r=S.res[m];c+=r.c;n+=r.n;p.stats=p.stats||{};const s=p.stats[m]=p.stats[m]||{c:0,n:0,hist:[]};s.c+=r.c;s.n+=r.n;s.hist.push({d,c:r.c,n:r.n});if(s.hist.length>60)s.hist=s.hist.slice(-60)});
  if(n){p.days=p.days||[];if(p.days.indexOf(d)<0)p.days.push(d);p.stars=(p.stars||0)+S.stars}save();
  const rows=Object.keys(S.res).map(m=>{const r=S.res[m];return `<div class="stat"><span>${M(m).ic} ${esc(M(m).name)}</span><b>${r.c} / ${r.n}</b></div><div class="bar"><div style="width:${Math.round(r.c/r.n*100)}%"></div></div>`}).join('');
- const t=S.title;S=null;
- app.innerHTML=`<h1>${isKid()?'Geschafft! 🎉':'Runde beendet'}</h1><div class="card">${n?`<p><b>${c} von ${n}</b> richtig (${Math.round(c/n*100)} %)</p>${isKid()?`<p class="stars">+${c} Sterne ⭐ – insgesamt ${p.stars||0}</p>`:''}${rows}`:'<p>Keine Aufgaben beantwortet.</p>'}</div>
+ const errs=S.errs||{};const errHtml=Object.keys(errs).length?`<div class="card"><h3>🔎 Deine Fehlerarten in dieser Runde</h3>${Object.keys(errs).sort((a,b)=>errs[b]-errs[a]).map(k=>`<div class="stat"><span>${esc(k)}</span><b>${errs[k]}×</b></div>`).join('')}<p class="small muted">Diese Regeln übt der Tagesplan jetzt öfter.</p></div>`:'';const wasCheck=S.title==='Schreib-Check';const t=S.title;S=null;
+ app.innerHTML=`<h1>${isKid()?'Geschafft! 🎉':'Runde beendet'}</h1><div class="card">${n?`<p><b>${c} von ${n}</b> richtig (${Math.round(c/n*100)} %)</p>${isKid()?`<p class="stars">+${c} Sterne ⭐ – insgesamt ${p.stars||0}</p>`:''}${rows}`:'<p>Keine Aufgaben beantwortet.</p>'}</div>${errHtml}${wasCheck&&n?'<div class="card"><p class="small">Der Schreib-Check ist <b>kein Test auf LRS</b>. Er zeigt nur, welche Fehlerarten bei dir häufig sind. Wie es weitergeht, steht unter „LRS erkennen“.</p></div>':''}
  <button class="btn pri wide" id="h">Zur Startseite</button>`;$('#h').onclick=home}
 function screenMsg(t,m){atHome=false;app.innerHTML=`<h1>${esc(t)}</h1><div class="card"><p>${esc(m)}</p></div><button class="btn pri wide" id="h">Zur Startseite</button>`;$('#h').onclick=home}
+
+
+/* ================== Zusatz: LRS erkennen ================== */
+const CHECK={
+kind:{title:'Anzeichen bei Kindern',who:'Beantworte die Fragen für das Kind (Eltern, Lehrkraft oder das Kind selbst mit Hilfe). Denk an die letzten Monate.',groups:[
+ {g:'📖 Lesen',q:['Liest stockend, Buchstabe für Buchstabe – auch nach längerem Üben','Rät Wörter oder liest sie falsch (z. B. nur nach dem Anfang)','Verliert die Zeile oder überspringt Zeilen','Verwechselt b/d, p/q oder vertauscht Buchstaben beim Lesen','Liest viel langsamer als andere in der Klasse; das Verstehen leidet']},
+ {g:'✍️ Schreiben',q:['Dasselbe Wort wird mehrmals verschieden geschrieben','Lässt Buchstaben oder Silben aus, fügt welche dazu oder vertauscht sie','Schreibt, wie es klingt (z. B. „Fater“, „Fogel“)','Groß-/Kleinschreibung und doppelte Mitlaute bleiben trotz Üben falsch','In Diktaten viele Fehler, obwohl das Üben vorher gut lief']},
+ {g:'🧩 Drumherum',q:['Hört Reime, Anlaute oder Silben nur schwer heraus','Vermeidet Lesen und Schreiben, hat Bauchweh vor Diktaten oder ist schnell frustriert','Versteht und erzählt mündlich viel besser, als es schreibt','In der Familie gibt es weitere Menschen mit Lese-Rechtschreib-Schwierigkeiten']}]},
+erw:{title:'Anzeichen bei Erwachsenen',who:'Beantworte die Fragen für dich. Es gibt keine falschen Antworten, sei einfach ehrlich.',groups:[
+ {g:'📖 Lesen',q:['Lesen ist anstrengend und langsam; ich muss Texte oft mehrmals lesen','Ich lasse mir Briefe, Formulare oder Verträge lieber vorlesen oder erklären','Beim Lesen rate ich Wörter oder überspringe Zeilen','Lange oder fremde Wörter (z. B. Namen, Fachbegriffe) bereiten mir Mühe']},
+ {g:'✍️ Schreiben',q:['Ich bin bei der Rechtschreibung oft unsicher und schreibe nur ungern','Ich bitte andere, meine Mails, Bewerbungen oder Briefe zu prüfen','Dasselbe Wort schreibe ich manchmal verschieden; Buchstaben oder Zahlen vertausche ich leicht','Die Rechtschreibprüfung hilft mir wenig, weil ich das richtige Wort nicht erkenne']},
+ {g:'🧩 Drumherum',q:['Ich vermeide Situationen, in denen ich lesen oder schreiben muss (Formulare, Aufgaben, Notizen)','In der Schulzeit hatte ich Angst vor Diktaten und Vorlesen','Was ich höre oder praktisch mache, verstehe ich viel besser als Geschriebenes','In meiner Familie gibt es weitere Menschen mit Lese-Rechtschreib-Schwierigkeiten']}]}
+};
+const SCHREIBCHECK={kind:['Sonne','Wasser','Biene','Hund','Katze','Jacke','Schule','Brief','Fahrrad','Straße'],erw:['Rechnung','Termin','Versicherung','Überweisung','Verspätung','Quittung','Werkstatt','Reparatur','Wohnung','Führerschein']};
+function erkennen(){atHome=false;const p=P();const last=(p.checks||[]).slice(-1)[0];
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>🔍 LRS erkennen</h1>
+ <div class="card"><p>Hier siehst du typische <b>Anzeichen</b> für eine Lese-Rechtschreib-Schwäche und kannst eine Checkliste ausfüllen. Das ist <b>keine Diagnose</b>. Eine Diagnose stellen nur Fachleute mit Tests.</p></div>
+ <div class="card prof" id="c1"><div><b>📋 Checkliste ausfüllen</b><div class="small muted">${isKid()?'Für Kinder (Eltern/Lehrkraft)':'Für Erwachsene'} · ca. 3 Minuten${last?' · zuletzt '+last.d+': '+last.pct+' %':''}</div></div><span>›</span></div>
+ <div class="card prof" id="c2"><div><b>✍️ Schreib-Check (10 Wörter)</b><div class="small muted">Zeigt, welche Fehlerarten bei dir oder dem Kind häufig sind</div></div><span>›</span></div>
+ <div class="card prof" id="c3"><div><b>📚 Woran erkennt man LRS?</b><div class="small muted">Anzeichen nach Alter – Vorschule, Grundschule, später</div></div><span>›</span></div>
+ <div class="card prof" id="c4"><div><b>🧭 Wie geht es weiter?</b><div class="small muted">Diagnose, Schule, Hilfe für Erwachsene</div></div><span>›</span></div>`;
+ $('#bk').onclick=home;$('#c1').onclick=()=>checkliste();$('#c2').onclick=()=>{const ws=SCHREIBCHECK[isKid()?'kind':'erw'];startSession('Schreib-Check',shuffle(ws).map(w=>({type:'diktat',item:{t:w}})))};$('#c3').onclick=anzeichen;$('#c4').onclick=weiter}
+function checkliste(){atHome=false;const p=P();const C=CHECK[isKid()?'kind':'erw'];const ans={};const total=C.groups.reduce((s,g)=>s+g.q.length,0);
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>📋 ${esc(C.title)}</h1><p class="muted">${esc(C.who)}</p>
+ ${C.groups.map((g,gi)=>`<h2>${g.g}</h2>${g.q.map((q,qi)=>`<div class="card" data-k="${gi}-${qi}"><p>${esc(q)}</p><div class="seg">${[['2','Ja, oft'],['1','Manchmal'],['0','Nein']].map(([v,l])=>`<button class="btn small" data-v="${v}">${l}</button>`).join('')}</div></div>`).join('')}`).join('')}
+ <div class="small muted" id="cnt">0 von ${total} beantwortet</div><button class="btn pri wide" id="go">Auswerten</button><div id="err"></div>`;
+ $('#bk').onclick=erkennen;
+ document.querySelectorAll('[data-k]').forEach(c=>c.querySelectorAll('button').forEach(b=>b.onclick=()=>{ans[c.dataset.k]=+b.dataset.v;c.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#cnt').textContent=Object.keys(ans).length+' von '+total+' beantwortet'}));
+ $('#go').onclick=()=>{if(Object.keys(ans).length<total){$('#err').innerHTML='<p style="color:var(--bad)">Bitte erst alle Fragen beantworten.</p>';return}
+  const sum=Object.values(ans).reduce((a,b)=>a+b,0);const pct=Math.round(sum/(total*2)*100);
+  const gs=C.groups.map((g,gi)=>{let s=0;g.q.forEach((_,qi)=>s+=ans[gi+'-'+qi]);return{g:g.g,pct:Math.round(s/(g.q.length*2)*100)}});
+  p.checks=p.checks||[];p.checks.push({d:today(),pct,kid:isKid()});save();
+  const lvl=pct<25?['few','Wenige Anzeichen','Die Antworten sprechen eher nicht für eine ausgeprägte Lese-Rechtschreib-Schwäche. Vereinzelte Fehler gehören zum Lernen dazu.']:pct<55?['some','Einige Anzeichen','Es gibt mehrere Hinweise. Das kann zu LRS passen, aber auch andere Gründe haben (Konzentration, Hören, Sehen, wenig Übung). Beobachte weiter und üb regelmäßig.']:['many','Viele Anzeichen','Die Antworten zeigen viele typische Merkmale. Eine fachliche Abklärung ist sinnvoll, siehe „Wie geht es weiter?“. Üben hilft in jedem Fall.'];
+  app.innerHTML=`<h1>Ergebnis</h1><div class="card"><span class="tag ${lvl[0]==='many'?'warn':''}">${lvl[1]}</span><p class="big" style="font-size:34px">${pct} %</p><p>${lvl[2]}</p>${gs.map(x=>`<div class="stat"><span>${x.g}</span><span>${x.pct} %</span></div><div class="bar"><div style="width:${x.pct}%"></div></div>`).join('')}
+  <p class="small muted">Das ist eine Orientierung und keine Diagnose. Eine LRS stellen Fachleute mit standardisierten Lese- und Rechtschreibtests fest.</p></div>
+  <button class="btn pri wide" id="w">🧭 Wie geht es weiter?</button><button class="btn wide" id="s">✍️ Schreib-Check machen</button><button class="btn wide" id="t">▶ Heute trainieren</button><button class="btn wide" id="h">Zurück</button>`;
+  $('#w').onclick=weiter;$('#s').onclick=()=>{const ws=SCHREIBCHECK[isKid()?'kind':'erw'];startSession('Schreib-Check',shuffle(ws).map(w=>({type:'diktat',item:{t:w}})))};$('#t').onclick=()=>startSession('Heute trainieren',planQueue());$('#h').onclick=erkennen}}
+function anzeichen(){atHome=false;
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>📚 Woran erkennt man LRS?</h1>
+ <div class="card"><h3>👶 Vorschule (ab ca. 4–5 Jahren)</h3><p>Hinweise sind: Reime und Silben schwer zu erkennen, Anlaute herauszuhören fällt schwer, Wörter und Namen werden oft vertauscht, wenig Interesse an Buchstaben und Büchern. <span class="small muted">(Das sind nur Hinweise, noch keine Diagnose.)</span></p></div>
+ <div class="card"><h3>🎒 Grundschule</h3><p><b>Lesen:</b> langsames, stockendes Lesen, Raten, Buchstaben vertauscht (b/d, p/q), Zeile verlieren, Verstehen leidet.<br><b>Schreiben:</b> Buchstaben fehlen oder sind vertauscht, gleiches Wort wird verschieden geschrieben, viele Diktatfehler trotz Üben.<br><b>Verhalten:</b> Lesen und Schreiben werden vermieden, Frust, Bauchweh vor Diktaten, Leistung sinkt auch in anderen Fächern.</p></div>
+ <div class="card"><h3>🧑‍🎓 Weiterführende Schule & Erwachsene</h3><p>Rechtschreibung bleibt unsicher, Texte schreiben und lesen dauert lange, Lesen wird möglichst vermieden, Hilfe bei Briefen und Formularen wird gebraucht, Strategien wie Auswendiglernen oder Umgehen von Wörtern. Viele sind im Alltag und mündlich sehr stark.</p></div>
+ <div class="card"><h3>ℹ️ Gut zu wissen</h3><p>• LRS hat <b>nichts mit Intelligenz oder Faulheit</b> zu tun.<br>• Sie kommt oft in Familien vor.<br>• Je früher gefördert wird, desto besser. Aber auch Erwachsene können sich verbessern.<br>• Ähnliche Anzeichen können auch von schlechtem Hören oder Sehen kommen. Das sollte zusätzlich geprüft werden.</p></div>`;$('#bk').onclick=erkennen}
+function weiter(){atHome=false;
+ app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>🧭 Wie geht es weiter?</h1>
+ <div class="card"><h3>👧 Bei Kindern</h3><p>1. Mit der Klassenlehrkraft sprechen und Beobachtungen zeigen (z. B. Diktate).<br>2. Hören und Sehen beim Kinderarzt prüfen lassen.<br>3. Diagnose bei Schulpsychologie, Kinder- und Jugendpsychiater/in, Kinder- und Jugendlichenpsychotherapeut/in oder Beratungsstelle.<br>4. In der Schule nach <b>Nachteilsausgleich</b> fragen (z. B. mehr Zeit). Was gilt, regelt jedes Bundesland anders.<br>5. Jeden Tag kurz üben, am besten mit dem Tagesplan.</p></div>
+ <div class="card"><h3>🧑 Bei Erwachsenen</h3><p>1. Üben mit dieser App: Laute, Regeln, Lesen.<br>2. Beratung beim <b>Bundesverband Legasthenie und Dyskalkulie (BVL)</b> oder bei einer Beratungsstelle vor Ort.<br>3. Kurse zum Lesen und Schreiben, z. B. bei der Volkshochschule. Das Alfa-Telefon (0800 53 33 44 55) berät kostenlos zu Lese- und Schreibkursen.<br>4. Am Arbeitsplatz und bei Prüfungen kann man oft Hilfen vereinbaren (z. B. mehr Zeit, Rechtschreibhilfe).</p></div>
+ <p class="small muted">Diese App ersetzt keine Diagnose und keine Therapie. Bei starken Schwierigkeiten oder großem Leidensdruck bitte Fachleute fragen.</p>`;$('#bk').onclick=erkennen}
 
 /* ================== Bildschirme ================== */
 let atHome=false;
@@ -312,8 +360,8 @@ function home(){applySettings();const p=P();if(!p)return profiles();atHome=true;
  <p class="muted">${p.mode==='kind'?'Kinder-Modus':'Erwachsenen-Modus'} · ${streak} Übungstag${streak===1?'':'e'}${isKid()?` · <span class="stars">⭐ ${p.stars||0}</span>`:''}</p>
  <div class="card hero" id="plan"><h2>▶ Heute trainieren</h2><p>ca. 15 Minuten · mischt die wirksamsten Methoden und übt gezielt deine Schwachstellen</p></div>
  <h2>Methoden einzeln wählen</h2><div class="grid">${METHODS.map(m=>`<div class="card m" data-m="${m.id}"><span class="ic">${m.ic}</span><b>${esc(m.name)}</b><span class="ev">${esc(m.ev)}</span><span class="small muted">${esc(m.desc)}</span>${m.id==='karte'?`<span class="small"><b>${due}</b> Wörter fällig</span>`:''}</div>`).join('')}</div>
- <div class="row" style="margin-top:12px"><button class="btn" id="st">📊 Fortschritt</button><button class="btn" id="se">⚙️ Einstellungen</button><button class="btn" id="ab">ℹ️ Methoden</button></div>`;
- $('#pf').onclick=profiles;$('#plan').onclick=()=>startSession('Heute trainieren',planQueue());$('#st').onclick=progress;$('#se').onclick=settings;$('#ab').onclick=about;
+ <div class="row" style="margin-top:12px"><button class="btn" id="er">🔍 LRS erkennen</button><button class="btn" id="st">📊 Fortschritt</button><button class="btn" id="se">⚙️ Einstellungen</button><button class="btn" id="ab">ℹ️ Methoden</button></div>`;
+ $('#pf').onclick=profiles;$('#plan').onclick=()=>startSession('Heute trainieren',planQueue());$('#er').onclick=erkennen;$('#st').onclick=progress;$('#se').onclick=settings;$('#ab').onclick=about;
  document.querySelectorAll('[data-m]').forEach(c=>c.onclick=()=>method(c.dataset.m))}
 function method(id){if(id==='regeln')return rulesMenu();
  const n={laute:10,silben:10,stamm:10,blitz:10,diktat:8,karte:10,text:1}[id];
@@ -341,6 +389,7 @@ function progress(){atHome=false;const p=P();const st=p.stats||{};
  ${weak&&info.length>1?`<div class="card"><span class="tag warn">Braucht mehr Übung</span><h3>${weak.m.ic} ${esc(weak.m.name)}</h3><p class="small">${Math.round(weak.acc*100)} % richtig – der Tagesplan übt das öfter.</p></div>`:''}
  ${info.length?`<h2>Methoden</h2><div class="card">${info.map(x=>`<div class="stat"><span>${x.m.ic} ${esc(x.m.name)}</span><span>${Math.round(x.acc*100)} %${x.delta!==null?` <span class="small ${x.delta>=0?'':'muted'}">(${x.delta>=0?'+':''}${Math.round(x.delta*100)})</span>`:''}</span></div><div class="bar"><div style="width:${Math.round(x.acc*100)}%"></div></div><div class="small muted" style="margin-bottom:8px">${x.n} Aufgaben · ${x.sessions} Runden</div>`).join('')}<p class="small muted">Die Zahl in Klammern zeigt die Verbesserung von den ersten 3 zu den letzten 3 Runden (ab 4 Runden).</p></div>`:''}
  ${rs.length?`<h2>Regeln</h2><div class="card">${rs.map(x=>`<div class="stat"><span>${esc(x.r.name)}</span><span>${Math.round(x.acc*100)} %</span></div><div class="bar"><div style="width:${Math.round(x.acc*100)}%"></div></div>`).join('')}</div>`:''}
+ ${Object.keys(p.errs||{}).length?`<h2>Häufigste Fehlerarten</h2><div class="card">${Object.keys(p.errs).sort((a,b)=>p.errs[b]-p.errs[a]).slice(0,6).map(k=>`<div class="stat"><span>${esc(k)}</span><b>${p.errs[k]}×</b></div>`).join('')}</div>`:''}
  <h2>Lesen</h2><div class="card"><div class="stat"><span>⚡ Blitzlesen-Tempo</span><b>${p.blitzMs||(isKid()?1000:700)} ms</b></div>${reads||'<p class="small muted">Noch keine Lesezeiten.</p>'}</div>
  <h2>Fehlerkartei</h2><div class="card"><div class="stat"><span>Wörter in der Kartei</span><b>${(p.karte||[]).length}</b></div><div class="stat"><span>Gelernt (rausgeflogen)</span><b>${p.learned||0}</b></div>${(p.karte||[]).length?`<p class="small muted">${(p.karte||[]).slice(0,30).map(c=>esc(c.t)).join(' · ')}</p>`:''}</div>`;
  $('#bk').onclick=home}
@@ -361,7 +410,7 @@ function settings(){atHome=false;const s=DB.set;const p=P();
  document.querySelectorAll('#sy button').forEach(b=>b.onclick=()=>{s.silben=b.dataset.v==='1';save();settings()});
  document.querySelectorAll('#md button').forEach(b=>b.onclick=()=>{p.mode=b.dataset.v;save();settings()});
  $('#rt').oninput=e=>{s.rate=+e.target.value;save()};$('#tt').onclick=()=>say('Das ist ein Test. Hallo!');
- $('#rs').onclick=()=>{$('#rsc').innerHTML='<p>Wirklich alles löschen?</p><button class="btn small" id="rsy">Ja, löschen</button>';$('#rsy').onclick=()=>{Object.assign(p,{stats:{},rules:{},karte:[],read:{},days:[],stars:0,learned:0,blitzMs:null});save();home()}};
+ $('#rs').onclick=()=>{$('#rsc').innerHTML='<p>Wirklich alles löschen?</p><button class="btn small" id="rsy">Ja, löschen</button>';$('#rsy').onclick=()=>{Object.assign(p,{stats:{},rules:{},karte:[],read:{},days:[],stars:0,learned:0,blitzMs:null,errs:{},checks:[]});save();home()}};
  applySettings()}
 function about(){atHome=false;app.innerHTML=`<button class="link" id="bk">‹ Zurück</button><h1>ℹ️ Warum diese Methoden?</h1>
  <div class="card"><p>Eine große Auswertung aller guten Studien (Universität München, 2014) zeigt: Am besten hilft <b>systematisches Training von Buchstabe und Laut</b>, verbunden mit Lesen und Rechtschreibregeln. Farbbrillen, reines Hörtraining oder Bewegungsübungen helfen dagegen kaum nachweisbar.</p>
